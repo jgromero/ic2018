@@ -9,6 +9,7 @@
 1. Descargar [software](https://github.com/jgromero/ic2018) (usando git o .zip)
 
     curl -LOk https://github.com/jgromero/ic2018/archive/master.zip
+    
     unzip master.zip 
 
 2. Instalar [PyClips](http://pyclips.sourceforge.net/web/)
