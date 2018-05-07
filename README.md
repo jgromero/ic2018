@@ -18,7 +18,7 @@
 
 3. Instalar [wxWidgets](https://wxpython.org)
 
-    `pip install wxPython`
+    `pip install wxPython
 
 > **Nota**: Utilizar pip2.7 si hay varias versiones de Python instaladas.
 
@@ -33,6 +33,6 @@ En la ventana de programa, utilizar **Oficina > Incrementar ciclo** (Ctrl + N) p
 
 **Oficina > Lanzar simulacion** (Ctrl + S) ejecuta 50 ciclos de simulación.
 
-Para resetear la simulación, volver a cargar el fichero de solución (por ejemplo, *`files/SolucionPractica1_Linux.clp"`*).
+Para resetear la simulación, volver a cargar el fichero de solución (por ejemplo, *`files/SolucionPractica1_Linux.clp`*).
 
-> Documentación e implementación: Juan Luis Castro Peña, Juan Gómez Romero (Universidad de Granada).
+> **Documentación e implementación**: Juan Luis Castro Peña, Juan Gómez Romero [Universidad de Granada](http://www.ugr.es).
