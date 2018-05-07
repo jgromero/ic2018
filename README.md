@@ -25,3 +25,14 @@
 ### Ejecución
 
     python main.py 
+
+### Uso
+Usar **Archivo > Cargar** con fichero de prueba *`files/SolucionPractica1_Linux.clp`*. Este fichero debe estar en el mismo directorio que *`Simulacion.txt`* (script de eventos) y *`simulacionoficina.bin`* (motor de simulación). 
+
+En la ventana de programa, utilizar **Oficina > Incrementar ciclo** (Ctrl + N) para pasar al siguiente ciclo de la simulación.
+
+**Oficina > Lanzar simulacion** (Ctrl + S) ejecuta 50 ciclos de simulación.
+
+Para resetear la simulación, volver a cargar el fichero de solución (por ejemplo, *`files/SolucionPractica1_Linux.clp"`*).
+
+> Documentación e implementación: Juan Luis Castro Peña, Juan Gómez Romero (Universidad de Granada).
