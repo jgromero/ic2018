@@ -81,7 +81,7 @@
   ;;;;;;;;;;;;;;;;;;;;; 1A ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (defrule EncolarUsuario
+  (defrule EncolaUsuario
   ?g <- (Solicitud ?tipotramite)
   ?f <- (Usuarios ?tipotramite ?n)
   =>
@@ -133,20 +133,16 @@
    ?rv)
    
    (deffunction hora ()
-   (bind ?rv (integer (string-to-field (sub-string 1 2  (system-string "time /t")))))
+   (bind ?rv (integer (string-to-field (sub-string 1 2  (system-string "date +\"%H:%M\"")))))
    ?rv)
    
    (deffunction minutos ()
-   (bind ?rv (integer (string-to-field (sub-string 4 5  (system-string "time /t")))))
+   (bind ?rv (integer (string-to-field (sub-string 4 5  (system-string "date +\"%H:%M\"")))))
    ?rv)
    
    (deffunction mrest (?arg)
    (bind ?rv (+ (* (- (- ?arg 1) (hora)) 60) (- 60 (minutos))))
    ?rv)
-
-  (deffunction mrest2 (?arg)
-    1000
-  )
  
   (defrule NoposibleEncolarUsuario
   (declare (salience 20))
@@ -155,7 +151,7 @@
   (UltimoUsuarioAtendido ?tipotramite ?atendidos)
   (TiempoMedioGestion ?tipotramite ?m)
   (FinalJornada ?h)
-  (test (> (* (- ?n ?atendidos) ?m) (mrest2 ?h)))
+  (test (> (* (- ?n ?atendidos) ?m) (mrest ?h)))
   =>
   (printout t "Lo siento pero por hoy no podremos atender mas " ?tipotramite crlf)
   (retract ?g)

@@ -1,6 +1,7 @@
 import wx
 import os
 import clips
+import time
 
 from SimulatorPanel import MyPanel
 from Office import Office
@@ -12,19 +13,14 @@ class SimulatorFrame(wx.Frame):
         self.dirname = ''
         self.filename = ''
         self.clipsFile = ''
+        self.simClipsFile = ''
+        self.simEventsFile = ''
 
         # create office object
         self.office = Office()
 
         # create a panel in the frame
         self.pnl = MyPanel(self, -1)
-
-        # and put some text with a larger bold font on it
-        # st = wx.StaticText(self.pnl, label="Oficina Inteligente", pos=(100, 60))
-        # font = st.GetFont()
-        # font.PointSize += 10
-        # font = font.Bold()
-        # st.SetFont(font)
 
         # create a menu bar
         self.makeMenuBar()
@@ -33,58 +29,34 @@ class SimulatorFrame(wx.Frame):
         self.CreateStatusBar()
         self.SetStatusText("Oficina inteligente 0.1")
 
+        # output text frame
+        self.OutputFrame = OutputFrame(self, "Salidas")
+        self.OutputFrame.Show()
+
+
     def makeMenuBar(self):
         fileMenu = wx.Menu()
-        loadItem = fileMenu.Append(-1, "&Cargar...\tCtrl-L", "Cargar fichero .clp")
+        loadItem = fileMenu.Append(-1, "Cargar...\tCtrl-L", "Cargar fichero .clp")
         fileMenu.AppendSeparator()
         exitItem = fileMenu.Append(wx.ID_EXIT)
 
-        clipsMenu = wx.Menu()
-        resetItem = clipsMenu.Append(-1, "Re&set\tCtrl-S", "Reset")
-        runItem   = clipsMenu.Append(-1, "&Run\tCtrl-R", "Run")
-
         oficinaMenu = wx.Menu()
-        solicitudTGItem = oficinaMenu.Append(-1, "&Nueva solicitud TG\tCtrl-G", "Nueva solicitud TG")
-        solicitudTEItem = oficinaMenu.Append(-1, "&Nueva solicitud TE\tCtrl-E", "Nueva solicitud TE")
-        disponibleE1 = oficinaMenu.Append(-1, "Disponible E1", "Disponible E1")
-        disponibleE2 = oficinaMenu.Append(-1, "Disponible E2", "Disponible E2")
-        disponibleG1 = oficinaMenu.Append(-1, "Disponible G1", "Disponible G1")
-        disponibleG2 = oficinaMenu.Append(-1, "Disponible G2", "Disponible G2")
-        disponibleG3 = oficinaMenu.Append(-1, "Disponible G3", "Disponible G3")
-        disponibleG4 = oficinaMenu.Append(-1, "Disponible G4", "Disponible G4")
-        disponibleG5 = oficinaMenu.Append(-1, "Disponible G5", "Disponible G5")
-
-        helpMenu = wx.Menu()
-        aboutItem = helpMenu.Append(wx.ID_ABOUT)
+        nuevoCicloItem = oficinaMenu.Append(-1, "Increme&ntar ciclo\tCtrl-N", "Nuevo ciclo")
+        lanzarSimulacionItem = oficinaMenu.Append(-1, "Lanzar &simulacion\tCtrl-S", "Simulacion completa")
 
         menuBar = wx.MenuBar()
         menuBar.Append(fileMenu, "&Archivo")
-        # menuBar.Append(clipsMenu, "&CLIPS")
         menuBar.Append(oficinaMenu, "&Oficina")
 
         self.SetMenuBar(menuBar)
 
+        self.Bind(wx.EVT_MENU, self.OnExit, exitItem)
         self.Bind(wx.EVT_MENU, self.OnOpen,  loadItem)
-
-        self.Bind(wx.EVT_MENU, self.OnReset, resetItem)
-        self.Bind(wx.EVT_MENU, self.OnRun,   runItem)
-
-        self.Bind(wx.EVT_MENU, self.OnSolicitudTG, solicitudTGItem)
-        self.Bind(wx.EVT_MENU, self.OnSolicitudTE, solicitudTEItem)
-        self.Bind(wx.EVT_MENU, self.OnDisponibleE1, disponibleE1)
-        self.Bind(wx.EVT_MENU, self.OnDisponibleE2, disponibleE2)
-        self.Bind(wx.EVT_MENU, self.OnDisponibleG1, disponibleG1)
-        self.Bind(wx.EVT_MENU, self.OnDisponibleG2, disponibleG2)
-        self.Bind(wx.EVT_MENU, self.OnDisponibleG3, disponibleG3)
-        self.Bind(wx.EVT_MENU, self.OnDisponibleG4, disponibleG4)
-        self.Bind(wx.EVT_MENU, self.OnDisponibleG5, disponibleG5)
-
-        self.Bind(wx.EVT_MENU, self.OnExit,  exitItem)
-        self.Bind(wx.EVT_MENU, self.OnAbout, aboutItem)
+        self.Bind(wx.EVT_MENU, self.OnNuevoCiclo, nuevoCicloItem)
+        self.Bind(wx.EVT_MENU, self.OnLanzarSimulacion, lanzarSimulacionItem)
 
     def OnExit(self, event):
         self.Close(True)
-
 
     def OnOpen(self, event):
         dlg = wx.FileDialog(self, "Selecciona archivo", self.dirname, "", "*.clp", wx.FD_OPEN)
@@ -93,40 +65,36 @@ class SimulatorFrame(wx.Frame):
         self.dirname = dlg.GetDirectory()
         if(self.filename != ""):
             self.clipsFile = os.path.join(self.dirname, self.filename)
+            self.simClipsFile = os.path.join(self.dirname, 'simulacionoficina.bin')
+            self.simEventsFile = os.path.join(self.dirname, 'Simulacion.txt')
+            clips.Clear()
             clips.BatchStar(self.clipsFile)
+            clips.BatchStar(self.simClipsFile)
             clips.Reset()
+            f = open(self.simEventsFile)
+            events_lines = f.read().splitlines()
+            for e in events_lines:
+                if not ";" in e:
+                    clips.Assert(e)
+            f.close()
+            clips.Assert("(ciclo 0)")
+
+            # clips.PrintFacts()
+            # clips.PrintRules()
             clips.Run()
             self.SetStatusText(self.clipsFile)
             self.office.updatePeopleLocation()
             self.Refresh()
+
+            self.OutputFrame.box.Clear()
+            self.OutputFrame.appendText("[sys] Iniciar simulacion " + time.strftime("%c"))
         dlg.Destroy()
 
-    def OnAbout(self, event):
-        """Display an About Dialog"""
-        wx.MessageBox("Oficina inteligente 0.1.",
-                      "Acerca de Oficina Inteligente",
-                      wx.OK|wx.ICON_INFORMATION)
 
-    def OnReset(self, event):
-        """Reset"""
+    def OnNuevoCiclo(self, event):
+        """Incrementar ciclo de la simulacion"""
         if self.clipsFile != "":
-            clips.Reset()
-        else:
-            dlg = wx.MessageDialog(self, "No se ha cargado fichero .clp", "Error en RESET", wx.OK)
-            dlg.ShowModal()
-
-    def OnRun(self, event):
-        """Run"""
-        if self.clipsFile != "":
-            clips.Run()
-        else:
-            dlg = wx.MessageDialog(self, "No se ha cargado fichero .clp", "Error en RUN", wx.OK)
-            dlg.ShowModal()
-
-    def OnSolicitudTG(self, event):
-        """TramitesGenerales"""
-        if self.clipsFile != "":
-            clips.Assert("(Solicitud TramitesGenerales)")
+            clips.Assert("(Seguir S)")
             clips.Run()
             self.office.updatePeopleLocation()
             self.Refresh()
@@ -134,45 +102,28 @@ class SimulatorFrame(wx.Frame):
             dlg = wx.MessageDialog(self, "No se ha cargado fichero .clp", "Error en ASSERT", wx.OK)
             dlg.ShowModal()
 
-    def OnSolicitudTE(self, event):
-        """TramitesEspeciales"""
+    def OnLanzarSimulacion(self, event):
+        """Lanzar toda la simulacion"""
         if self.clipsFile != "":
-            clips.Assert("(Solicitud TramitesEspeciales)")
-            clips.Run()
-            self.office.updatePeopleLocation()
-            self.Refresh()
+            for i in range(50):
+                clips.Assert("(Seguir S)")
+                clips.Run()
+                self.office.updatePeopleLocation()
+                self.Refresh()
         else:
             dlg = wx.MessageDialog(self, "No se ha cargado fichero .clp", "Error en ASSERT", wx.OK)
             dlg.ShowModal()
 
-    def OnDisponibleE1(self, event):
-        self.ProcessAssertDisponible("E1")
+class OutputFrame(wx.Frame):
+    def __init__(self, parent, title):
+        wx.Frame.__init__(self, parent, title=title, size = (400, 300) )
+        self.box = wx.TextCtrl(self, style=wx.TE_READONLY | wx.TE_MULTILINE, size = (400, 300))
 
-    def OnDisponibleE2(self, event):
-        self.ProcessAssertDisponible("E2")
-
-    def OnDisponibleG1(self, event):
-        self.ProcessAssertDisponible("G1")
-
-    def OnDisponibleG2(self, event):
-        self.ProcessAssertDisponible("G2")
-
-    def OnDisponibleG3(self, event):
-        self.ProcessAssertDisponible("G3")
-
-    def OnDisponibleG4(self, event):
-        self.ProcessAssertDisponible("G4")
-
-    def OnDisponibleG5(self, event):
-        self.ProcessAssertDisponible("G5")
-
-    def ProcessAssertDisponible(self, who):
-        if self.clipsFile != "":
-            fact = "(Disponible " + who + ")"
-            clips.Assert(fact)
-            clips.Run()
-            self.office.updatePeopleLocation()
-            self.Refresh()
-        else:
-            dlg = wx.MessageDialog(self, "No se ha cargado fichero .clp", "Error en ASSERT", wx.OK)
-            dlg.ShowModal()
+    def appendText(self, text):
+        for line in text.split('\n'):
+            if "[sys]" in line:
+                self.box.SetDefaultStyle(wx.TextAttr(wx.LIGHT_GREY))
+                self.box.AppendText(line.strip() + "\n")
+            elif len(line) >= 1:
+                self.box.SetDefaultStyle(wx.TextAttr(wx.BLACK))
+                self.box.AppendText(line.strip() + "\n")

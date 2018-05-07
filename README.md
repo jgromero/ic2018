@@ -4,13 +4,18 @@
 
 ### Instalación
 
-1. Descargar software (usando git o .zip)
-2. Descargar Python 2.7
-3. Instalar [PyClips](http://pyclips.sourceforge.net/web/)
+**Pre-requisitos**: Ubuntu 16, Python 2.7
+
+1. Descargar [software](https://github.com/jgromero/ic2018) (usando git o .zip)
+
+    curl -LOk https://github.com/jgromero/ic2018/archive/master.zip
+    unzip master.zip 
+
+2. Instalar [PyClips](http://pyclips.sourceforge.net/web/)
 
     pip install pyclips
 
- 5. Instalar [wxWidgets](https://wxpython.org)
+3. Instalar [wxWidgets](https://wxpython.org)
 
     pip install wxPython
 

@@ -1,0 +1,209 @@
+
+;;;;;; Ciclo de incorporacion de datos 
+
+;;; Generamos el ciclo continuo pero decidiendo en cada paso si continuar
+
+(defrule preguntaseguir
+(declare (salience -9999))
+?f <- (Preguntar)
+ =>
+ (retract ?f)
+ )
+
+
+(defrule  Generador_ciclos
+(declare (salience -10000))
+?g <- (Seguir S)
+?f <- (ciclo ?n)
+=>
+(retract ?f ?g)
+(assert (ciclo (+ ?n 1)))
+(assert (Preguntar))
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Generacion de acciones (Interpretacion de datos)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Datos básicos de la parte 1
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defrule asertarsolicitud
+(declare (salience 8000))
+?f <- (NuevoUsuario ? ?tipo ?c)
+(ciclo ?c)
+(not (Solicitud ?))
+=> 
+(assert (Solicitud ?tipo))
+(printout t "[sys] Solicitud " ?tipo crlf)
+(retract ?f)
+)
+
+(defrule asertardisponible
+(declare (salience 8000))
+?f <- (BotonDisponible ?empl ?c)
+(ciclo ?c)
+=> 
+(assert (Disponible ?empl))
+(printout t "[sys] Disponible " ?empl crlf)
+(retract ?f)
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Datos de acciones, movimientos
+;;;;; Salience mas alto para primero generar estos datatos
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defrule persona_va_habitacion
+(declare (salience 10000))
+?f <- (Va ?pers ?hab ?c)
+(ciclo ?c)
+=> 
+(assert (Situacion ?pers Pasillo  (+ ?c 1)))
+(assert (Entrada ?hab (+ ?c 2)))
+(assert (Situacion ?pers ?hab (+ ?c 2)))
+(retract ?f)
+)
+
+(defrule seva_persona
+(declare (salience 10000))
+(Irse ?pers ?hab ?c)
+=> 
+(assert (Situacion ?pers Pasillo  (+ ?c 1)))
+(assert (Salida ?hab (+ ?c 1)))
+(assert (Situacion ?pers Recepcion (+ ?c 2)))
+(assert (Situacion ?pers Fuera (+ ?c 3)))
+)
+
+
+(defrule empleado_llega
+(declare (salience 10000))
+?f <- (llega ?empl ?c)
+(ciclo ?c)
+(Empleado ?empl ?oficina)
+=> 
+(assert (Situacion_actual ?empl Recepcion))
+(assert (Va ?empl ?oficina ?c))
+(retract ?f)
+)
+
+(defrule empleado_seva
+(declare (salience 10000))
+?f <- (seva ?empl ?c)
+(ciclo ?c)
+(Empleado ?empl ?oficina)
+=> 
+(assert (Irse ?empl ?oficina ?c))
+(retract ?f)
+)
+
+(defrule usuario_llega
+(declare (salience 10000))
+(Usuario ?tipotramite ?n)
+=> 
+(assert (Situacion_actual (str-cat "usuario" ?tipotramite ?n)  Recepcion))
+)
+
+
+(defrule MandarUsuarioOficina
+(declare (salience 10000))
+(Asignado ?empl ?tipotramite ?n) 
+(Empleado ?empl ?oficina)
+=>
+(assert (Mandar (str-cat "usuario" ?tipotramite ?n) ?oficina))
+)
+
+(defrule UsuarioVaOficina
+(declare (salience 10000))
+?f <- (Mandar ?pers ?oficina)
+(ciclo ?c)
+=>
+(assert (Va ?pers ?oficina ?c))
+(retract ?f)
+)
+ 
+(defrule MandarSalirUsuario
+(declare (salience 10000))
+(Tramitado ?empl ?tipotramite ?n) 
+(Empleado ?empl ?oficina)
+=>
+(assert (MandarIrse (str-cat "usuario" ?tipotramite ?n) ?oficina))
+)
+
+(defrule UsuarioSeVa
+(declare (salience 10000))
+?f <- (MandarIrse ?pers ?oficina)
+(ciclo ?c)
+=>
+(assert (Irse ?pers ?oficina ?c))
+(retract ?f)
+)
+
+
+(defrule actualizarsituacion
+(declare (salience 9900))
+(ciclo ?n)
+(Situacion ?x ?hab  ?n)
+?f <- (Situacion_actual ?x ?hab2)
+(test (neq ?hab ?hab2))
+=> 
+(retract ?f)
+(assert (Situacion_actual ?x ?hab))
+)
+
+;;;;;;; Actualizar Sensores
+
+(defrule disparar_sensor_presencia
+(declare (salience 8000))
+(TieneSensorPresencia ?hab)
+(Situacion_actual ?x ?hab)
+=>
+(assert (Sensor_presencia ?hab))
+(printout t "[sys] Sensor_presencia " ?hab crlf)
+)
+
+(defrule apagar_sensor_presencia
+(declare (salience 8000))
+?f <- (Sensor_presencia ?hab)
+(not (Situacion_actual ?x ?hab))
+=>
+(retract ?f)
+(printout t "[sys] Apagado Sensor_presencia " ?hab crlf)
+)
+
+(defrule disparar_sensor_puerta_entrada
+(declare (salience 8000))
+(TieneSensorPuerta ?hab)
+(ciclo ?c)
+?f <- (Entrada ?hab ?c)
+=>
+(assert (Sensor_puerta ?hab))
+(printout t "[sys] Sensor_puerta " ?hab crlf)
+(retract ?f)
+)
+
+(defrule disparar_sensor_puerta_saloda
+(declare (salience 8000))
+(TieneSensorPuerta ?hab)
+(ciclo ?c)
+?f <- (Salida ?hab ?c)
+=>
+(assert (Sensor_puerta ?hab))
+(printout t "[sys] Sensor_puerta " ?hab crlf)
+(retract ?f)
+)
+
+(defrule apagar_sensor_puerta
+(declare (salience 8000))
+(TieneSensorPuerta ?hab)
+?f <- (Sensor_puerta ?hab)
+(not (entrada ?hab ?n))
+=>
+(retract ?f)
+(printout t "[sys] Apagado Sensor_puerta " ?hab crlf)
+)
+
