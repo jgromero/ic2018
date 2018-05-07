@@ -98,6 +98,9 @@ class SimulatorFrame(wx.Frame):
             clips.Run()
             self.office.updatePeopleLocation()
             self.Refresh()
+            error = clips.ErrorStream.Read()
+            if error != None:
+                print(error)
         else:
             dlg = wx.MessageDialog(self, "No se ha cargado fichero .clp", "Error en ASSERT", wx.OK)
             dlg.ShowModal()
