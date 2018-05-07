@@ -24,7 +24,7 @@
 
 ### Ejecución
 
-    `python main.py`
+    python main.py
 
 ### Uso
 Usar **Archivo > Cargar** con fichero de prueba *`files/SolucionPractica1_Linux.clp`*. Este fichero debe estar en el mismo directorio que *`Simulacion.txt`* (script de eventos) y *`simulacionoficina.bin`* (motor de simulación). 
