@@ -10,7 +10,6 @@
   (Habitacion OficinaDoble)
   (Habitacion Gerencia)
   (Habitacion Papeleria)
-  (Habitacion Aseos)
   (Habitacion AseoHombres)
   (Habitacion AseoMujeres)
   )
@@ -25,6 +24,21 @@
   (Puerta Pasillo OficinaDoble)
   (Puerta Pasillo Papeleria)
   )
+  (deffacts Sensores
+  (TieneSensorPuerta Pasillo)
+  (TieneSensorPuerta Oficina1)
+  (TieneSensorPuerta Oficina2)
+  (TieneSensorPuerta Oficina3)
+  (TieneSensorPuerta Oficina4)
+  (TieneSensorPuerta Oficina5)
+  (TieneSensorPuerta Gerencia)
+  (TieneSensorPuerta OficinaDoble)
+  (TieneSensorPuerta Papeleria)
+  (TieneSensorPresencia Oficina1)
+  (TieneSensorPresencia AseoHombres)
+  (TieneSensorPresencia AseoMujeres)
+  )
+
   (deffacts Empleados
   (Empleado G1 Oficina1)
   (Empleado G2 Oficina2)
@@ -81,7 +95,7 @@
   ;;;;;;;;;;;;;;;;;;;;; 1A ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (defrule EncolaUsuario
+  (defrule EncolarUsuario
   ?g <- (Solicitud ?tipotramite)
   ?f <- (Usuarios ?tipotramite ?n)
   =>
@@ -156,4 +170,13 @@
   (printout t "Lo siento pero por hoy no podremos atender mas " ?tipotramite crlf)
   (retract ?g)
   )
-  
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;; 4 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (defrule ImprimirHechoEntrada
+  (declare (salience 10000))
+  (Sensor_puerta ?hab)
+  =>
+  (printout t "Encendido sensor puerta " ?hab crlf)
+  )

@@ -201,7 +201,7 @@
 (declare (salience 8000))
 (TieneSensorPuerta ?hab)
 ?f <- (Sensor_puerta ?hab)
-(not (entrada ?hab ?n))
+(not (Entrada ?hab ?n))
 =>
 (retract ?f)
 (printout t "[sys] Apagado Sensor_puerta " ?hab crlf)
