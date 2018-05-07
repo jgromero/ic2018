@@ -8,17 +8,17 @@
 
 1. Descargar [software](https://github.com/jgromero/ic2018) (usando git o .zip)
 
-    curl -LOk https://github.com/jgromero/ic2018/archive/master.zip
+    `curl -LOk https://github.com/jgromero/ic2018/archive/master.zip`
     
-    unzip master.zip 
+    `unzip master.zip`
 
 2. Instalar [PyClips](http://pyclips.sourceforge.net/web/)
 
-    pip install pyclips
+    `pip install pyclips`
 
 3. Instalar [wxWidgets](https://wxpython.org)
 
-    pip install wxPython
+    `pip install wxPython`
 
 > **Nota**: Utilizar pip2.7 si hay varias versiones de Python instaladas.
 
