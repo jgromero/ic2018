@@ -41,8 +41,10 @@ class SimulatorFrame(wx.Frame):
         exitItem = fileMenu.Append(wx.ID_EXIT)
 
         oficinaMenu = wx.Menu()
-        nuevoCicloItem = oficinaMenu.Append(-1, "Increme&ntar ciclo\tCtrl-N", "Nuevo ciclo")
-        lanzarSimulacionItem = oficinaMenu.Append(-1, "Lanzar &simulacion\tCtrl-S", "Simulacion completa")
+        self.nuevoCicloItem = oficinaMenu.Append(-1, "Increme&ntar ciclo\tCtrl-N", "Nuevo ciclo")
+        self.nuevoCicloItem.Enable(False)
+        #self.lanzarSimulacionItem = oficinaMenu.Append(-1, "A&vanzar simulacion (25 ciclos)\tCtrl-V", "Avanzar simulacion (25 ciclos)")
+        #self.lanzarSimulacionItem.Enable(False)
 
         menuBar = wx.MenuBar()
         menuBar.Append(fileMenu, "&Archivo")
@@ -52,8 +54,8 @@ class SimulatorFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.OnExit, exitItem)
         self.Bind(wx.EVT_MENU, self.OnOpen,  loadItem)
-        self.Bind(wx.EVT_MENU, self.OnNuevoCiclo, nuevoCicloItem)
-        self.Bind(wx.EVT_MENU, self.OnLanzarSimulacion, lanzarSimulacionItem)
+        self.Bind(wx.EVT_MENU, self.OnNuevoCiclo, self.nuevoCicloItem)
+        #self.Bind(wx.EVT_MENU, self.OnLanzarSimulacion, self.lanzarSimulacionItem)
 
     def OnExit(self, event):
         self.Close(True)
@@ -64,30 +66,31 @@ class SimulatorFrame(wx.Frame):
             self.filename = dlg.GetFilename()
         self.dirname = dlg.GetDirectory()
         if(self.filename != ""):
+            os.chdir(self.dirname)
             self.clipsFile = os.path.join(self.dirname, self.filename)
-            self.simClipsFile = os.path.join(self.dirname, 'simulacionoficina.bin')
-            self.simEventsFile = os.path.join(self.dirname, 'Simulacion.txt')
-            clips.Clear()
-            clips.BatchStar(self.clipsFile)
-            clips.BatchStar(self.simClipsFile)
-            clips.Reset()
-            f = open(self.simEventsFile)
-            events_lines = f.read().splitlines()
-            for e in events_lines:
-                if not ";" in e:
-                    clips.Assert(e)
-            f.close()
-            clips.Assert("(ciclo 0)")
+            self.simClipsFile = os.path.join(self.dirname, 'CicloControlado2.clp')
+            self.timeClipsFile = os.path.join(self.dirname, 'simulacionoficinaalumnos.clp')
 
-            # clips.PrintFacts()
-            # clips.PrintRules()
+            clips.Clear()
+            clips.BatchStar(self.simClipsFile)
+            clips.BatchStar(self.clipsFile)
+            clips.BatchStar(self.timeClipsFile)
+
+            clips.Reset()
             clips.Run()
+
+            # Modo de ejecucion
+            for f in clips.FactList():
+                if "Preguntando" in f.PPForm():
+                    self.nuevoCicloItem.Enable(True)
+                    break
+
             self.SetStatusText(self.clipsFile)
             self.office.updatePeopleLocation()
             self.Refresh()
 
             self.OutputFrame.box.Clear()
-            self.OutputFrame.appendText("[sys] Iniciar simulacion " + time.strftime("%c"))
+            self.OutputFrame.appendText("-> Iniciar simulacion " + time.strftime("%c"))
         dlg.Destroy()
 
 
@@ -108,11 +111,10 @@ class SimulatorFrame(wx.Frame):
     def OnLanzarSimulacion(self, event):
         """Lanzar toda la simulacion"""
         if self.clipsFile != "":
-            for i in range(50):
-                clips.Assert("(Seguir S)")
-                clips.Run()
-                self.office.updatePeopleLocation()
-                self.Refresh()
+            clips.Assert("(Seguir S)")
+            clips.Run()
+            self.office.updatePeopleLocation()
+            self.Refresh()
         else:
             dlg = wx.MessageDialog(self, "No se ha cargado fichero .clp", "Error en ASSERT", wx.OK)
             dlg.ShowModal()
@@ -124,7 +126,8 @@ class OutputFrame(wx.Frame):
 
     def appendText(self, text):
         for line in text.split('\n'):
-            if "[sys]" in line:
+            if "->" in line:
+                line = line.replace("-", "").replace(">", "")
                 self.box.SetDefaultStyle(wx.TextAttr(wx.LIGHT_GREY))
                 self.box.AppendText(line.strip() + "\n")
             elif len(line) >= 1:

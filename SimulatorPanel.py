@@ -15,8 +15,10 @@ class MyPanel(wx.Panel):
         font = self.dc.GetFont()
         font.SetPointSize(18)
         self.dc.SetFont(font)
+        if self.office.hora != '' and self.office.minutos != '' and self.office.segundos != '':
+            self.dc.DrawText(self.office.hora + ":" + self.office.minutos.zfill(2) + ":" + self.office.segundos.zfill(2), 120, 60)
         if self.office.ciclo != '':
-            self.dc.DrawText("Ciclo: " + self.office.ciclo, 100, 60)
+            self.dc.DrawText("Ciclo: " + self.office.ciclo, 350, 60)
 
         font = self.dc.GetFont()
         font.SetPointSize(8)
@@ -42,7 +44,7 @@ class MyPanel(wx.Panel):
                 self.dc.SetPen(wx.Pen(self.getPersonBorderColor(p), style=wx.SOLID, width=3))
                 self.dc.SetBrush(wx.Brush(fill, wx.SOLID))
                 self.dc.DrawCircle(pos[0] + 30 + dispX, pos[1] + dispY, 8)
-                self.dc.SetPen(wx.Pen("white", style=wx.SOLID))
+                self.dc.SetTextForeground(self.getPersonFontColor(p))
                 self.dc.DrawText(p.getId(), pos[0] + 25 + dispX_text, pos[1] + dispY + 10)
 
         del self.dc
@@ -93,9 +95,9 @@ class MyPanel(wx.Panel):
         id = person.getId()
         type = person.getType()
         tramite = person.getTramite()
-        if tramite == "TramitesGenerales":
+        if tramite == "TG":
             return "blue"
-        elif tramite == "TramitesEspeciales":
+        elif tramite == "TE":
             return "red"
         elif id == "Recepcionista":
             return "grey"
@@ -110,3 +112,10 @@ class MyPanel(wx.Panel):
             return "white"
         else:
             return self.getPersonBorderColor(person)
+
+    def getPersonFontColor(self, person):
+        disp = person.getDisp()
+        if disp == True:
+            return "green"
+        else:
+            return "black"

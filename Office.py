@@ -8,6 +8,9 @@ class Office():
         self.clients   = []
         self.ciclo = ''
         self.text = ''
+        self.hora = ''
+        self.minutos = ''
+        self.segundos = ''
 
     def initRooms(self):
         habs = [
@@ -36,13 +39,15 @@ class Office():
     def updatePeopleLocation(self):
         for r in self.rooms:
             r.emptyRoom()
+        disponibles = []
 
         facts = clips.FactList()
 
         for f in facts:
             vector = f.PPForm().replace("(", "").replace(")", "").split()
 
-            if vector[1] == "Situacion_actual":     # (Situacion_actual ?pers ?hab)
+            if vector[1] == "URJ6":     # (Situacion_actual ?pers ?hab)
+                print(vector)
                 id = vector[2]
                 habitacion = vector[3]
 
@@ -50,12 +55,21 @@ class Office():
                 if room != None:
                     type = "Usuario" if "usuario" in id else "Empleado"
                     if type == "Usuario":
-                        tramite = "TramitesGenerales" if "TramitesGenerales" in id else "TramitesEspeciales"
+                        tramite = "TG" if "TG" in id else "TE"
                         id = id.replace("usuario", "u")
                         id = id.replace('"', '')
                     else:
-                        tramite = "TramitesGenerales" if "G" in id else "TramitesEspeciales"
+                        if "Director" in id or "Recepcionista" in id:
+                            tramite = ""
+                        elif "G" in id:
+                            tramite = "TG"
+                        elif "E" in id:
+                            tramite = "TE"
+
                     room.addPerson(Person(id, type, tramite, room.getId()))
+
+            if vector[1] == "Disponible":
+                disponibles.append(vector[2])
 
             if vector[1] == "Luz":
                 habitacion = vector[2]
@@ -67,6 +81,20 @@ class Office():
 
             if vector[1] == "ciclo":
                 self.ciclo = vector[2]
+
+            if vector[1] == "hora_actual":
+                self.hora = vector[2]
+            if vector[1] == "minutos_actual":
+                self.minutos = vector[2]
+            if vector[1] == "segundos_actual":
+                self.segundos = vector[2]
+
+        for r in self.rooms:
+            for p in r.getPeople():
+                if p.getId() in disponibles:
+                    p.disp = True
+                else:
+                    p.disp = False
 
     def getUpdatedText(self):
         text = clips.StdoutStream.Read()
@@ -100,6 +128,7 @@ class Person():
         self.type = type
         self.tramite = tramite
         self.room = room
+        self.disp = False
 
     def getId(self):
         return self.id
@@ -112,3 +141,6 @@ class Person():
 
     def getRoom(self):
         return self.room
+
+    def getDisp(self):
+        return self.disp
